@@ -44,17 +44,28 @@ export default function DashboardNavbar({ onOpenSidebar }) {
   return (
     <RootStyle>
       <ToolbarStyle>
-        <IconButton onClick={onOpenSidebar} sx={{ mr: 1, color: 'text.primary', display: { lg: 'none' } }}>
+        <IconButton onClick={onOpenSidebar} sx={{ mr: 1, color: 'default', display: { lg: 'none' } }}>
           <Iconify icon="eva:menu-2-fill" />
         </IconButton>
 
-        <Searchbar />
+        {/* <Searchbar /> */}
         <Box sx={{ flexGrow: 1 }} />
 
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
-          <LanguagePopover />
-          <NotificationsPopover />
-          <AccountPopover />
+          <a target="blank" href={'https://discord.gg/aGEEGHPG'}>
+            <IconButton sx={{ color: 'text.secondary' }}>
+              <Iconify icon="akar-icons:discord-fill" />
+            </IconButton>
+          </a>
+          <a target="blank" href={'https://rinkeby.etherscan.io/token/0x84fa17c04B1009f34e62468833cd428fA1813fB0'}>
+            <IconButton sx={{ color: 'text.secondary' }}>
+              <Iconify icon="cib:ethereum" />
+            </IconButton>
+          </a>
+
+          {/* <LanguagePopover /> */}
+          {/* <NotificationsPopover /> */}
+          {/* <AccountPopover /> */}
         </Stack>
       </ToolbarStyle>
     </RootStyle>

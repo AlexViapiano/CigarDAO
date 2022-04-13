@@ -116,14 +116,12 @@ export default function Login() {
     }
   };
 
-  console.log(address);
-
   return (
     <Page title="Login">
       <RootStyle>
-        <HeaderStyle>
+        {/* <HeaderStyle>
           <Logo />
-        </HeaderStyle>
+        </HeaderStyle> */}
 
         {mdUp && (
           <SectionStyle>

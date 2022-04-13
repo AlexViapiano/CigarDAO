@@ -14,6 +14,13 @@ import {
   TableContainer,
   TableRow,
   Paper,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Alert,
+  Card,
 } from '@mui/material';
 
 import { faker } from '@faker-js/faker';
@@ -49,6 +56,7 @@ const DAO = () => {
   const [treasury, setTreasury] = useState({});
   const [memberTokenAmounts, setMemberTokenAmounts] = useState([]);
   const [memberAddresses, setMemberAddresses] = useState([]);
+  const [chartData, setChartData] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [isVoting, setIsVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -65,7 +73,7 @@ const DAO = () => {
       try {
         const memberAddresses = await editionDrop.history.getAllClaimerAddresses(0);
         setMemberAddresses(memberAddresses);
-        console.log('🚀 Members addresses', memberAddresses);
+        // console.log('🚀 Members addresses', memberAddresses);
       } catch (error) {
         console.error('failed to get member list', error);
       }
@@ -85,6 +93,10 @@ const DAO = () => {
         setMemberTokenAmounts(amounts);
         const treasury = amounts?.find(({ holder }) => holder === '0x9237C8e1e544768F506AAD9a5E263A632235590c');
         setTreasury(treasury);
+        const chartData = amounts.map((member) => {
+          return { label: member?.holder, value: Number(member?.balance?.displayValue) };
+        });
+        setChartData(chartData);
         // console.log('👜 Amounts', amounts);
       } catch (error) {
         console.error('failed to get member balances', error);
@@ -180,20 +192,8 @@ const DAO = () => {
     checkIfUserHasVoted();
   }, [hasClaimedNFT, proposals, address, vote]);
 
-  //   console.log('network', network);
-  //   console.log('ChainId', ChainId);
-
-  // if (network?.[0].data?.chain?.id !== ChainId?.Rinkeby) {
-  //   return (
-  //     <div className="unsupported-network">
-  //       <h2>Please connect to Rinkeby</h2>
-  //       <p>
-  //         This dapp only works on the Rinkeby network, please switch networks
-  //         in your connected wallet.
-  //       </p>
-  //     </div>
-  //   );
-  // }
+  console.log('network', network);
+  console.log('ChainId', ChainId);
 
   // A fancy function to shorten someones wallet address, no need to show the whole thing.
   const shortenAddress = (str) => `${str.substring(0, 6)}...${str.substring(str.length - 4)}`;
@@ -203,8 +203,15 @@ const DAO = () => {
 
   return (
     <div className="member-page">
+      {network?.[0].data?.chain?.id !== ChainId?.Rinkeby && (
+        <Alert variant="filled" severity="warning" sx={{ mb: 5 }}>
+          Please connect to Rinkeby. This dapp only works on the Rinkeby network, please switch networks in your
+          connected wallet.
+        </Alert>
+      )}
+
       <Typography variant="h4" gutterBottom>
-        DAO Member Page
+        CigarDAO Member Page
       </Typography>
 
       <Typography sx={{ color: 'text.secondary', mb: 5 }}>Congratulations on being a member!</Typography>
@@ -216,138 +223,178 @@ const DAO = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Treasury" total={treasury?.balance?.displayValue} color="info" icon={'mdi:bank'} />
+            <AppWidgetSummary
+              title="Treasury"
+              total={treasury?.balance?.displayValue != null ? Number(treasury?.balance?.displayValue) : 0}
+              color="info"
+              icon={'mdi:bank'}
+            />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Members" total={3} color="warning" icon={'mdi:account-group'} />
+            <AppWidgetSummary
+              title="Members"
+              total={memberAddresses?.length}
+              color="warning"
+              icon={'mdi:account-group'}
+            />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Proposals" total={2} color="error" icon={'mdi:comment-question'} />
+            <AppWidgetSummary title="Proposals" total={proposals?.length} color="error" icon={'mdi:comment-question'} />
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="h4" gutterBottom>
-              Member List
-            </Typography>
-            <TableContainer component={Paper} sx={{ mb: 2 }}>
-              <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Address</TableCell>
-                    <TableCell align="right"># of Tokens</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {memberList.map((member) => (
-                    <TableRow key={member.address} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                      <TableCell component="th" scope="row">
-                        {shortenAddress(member.address)}
-                      </TableCell>
-                      <TableCell align="right">{member.tokenAmount}</TableCell>
+            <Card sx={{ p: 2 }}>
+              <Typography variant="h5" gutterBottom>
+                Member List
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Address</TableCell>
+                      <TableCell align="right"># of Tokens</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {memberList.map((member) => (
+                      <TableRow key={member.address} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                        <TableCell component="th" scope="row">
+                          {shortenAddress(member.address)}
+                        </TableCell>
+                        <TableCell align="right">{member.tokenAmount}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Card>
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-              Active Proposals
-            </Typography>
-            <Paper sx={{ mb: 3, p: 2 }}>
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+            <Card sx={{ p: 2 }}>
+              <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+                Active Proposals
+              </Typography>
+              <Paper sx={{ mb: 3 }}>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                  // before we do async things, we want to disable the button to prevent double clicks
-                  setIsVoting(true);
+                    // before we do async things, we want to disable the button to prevent double clicks
+                    setIsVoting(true);
 
-                  // lets get the votes from the form for the values
-                  const votes = proposals.map((proposal) => {
-                    const voteResult = {
-                      proposalId: proposal.proposalId,
-                      // abstain by default
-                      vote: 2,
-                    };
-                    proposal.votes.forEach((vote) => {
-                      const elem = document.getElementById(`${proposal.proposalId}-${vote.type}`);
+                    // lets get the votes from the form for the values
+                    const votes = proposals.map((proposal) => {
+                      const voteResult = {
+                        proposalId: proposal.proposalId,
+                        // abstain by default
+                        vote: 2,
+                      };
+                      proposal.votes.forEach((vote) => {
+                        const elem = document.getElementById(`${proposal.proposalId}-${vote.type}`);
 
-                      if (elem.checked) {
-                        voteResult.vote = vote.type;
-                      }
+                        if (elem.checked) {
+                          voteResult.vote = vote.type;
+                        }
+                      });
+                      return voteResult;
                     });
-                    return voteResult;
-                  });
 
-                  // first we need to make sure the user delegates their token to vote
-                  try {
-                    // we'll check if the wallet still needs to delegate their tokens before they can vote
-                    const delegation = await token.getDelegationOf(address);
-                    // if the delegation is the 0x0 address that means they have not delegated their governance tokens yet
-                    if (delegation === AddressZero) {
-                      // if they haven't delegated their tokens yet, we'll have them delegate them before voting
-                      await token.delegateTo(address);
-                    }
-                    // then we need to vote on the proposals
+                    // first we need to make sure the user delegates their token to vote
                     try {
-                      await Promise.all(
-                        votes.map(async ({ proposalId, vote: _vote }) => {
-                          // before voting we first need to check whether the proposal is open for voting
-                          // we first need to get the latest state of the proposal
-                          const proposal = await vote.get(proposalId);
-                          // then we check if the proposal is open for voting (state === 1 means it is open)
-                          if (proposal.state === 1) {
-                            // if it is open for voting, we'll vote on it
-                            return vote.vote(proposalId, _vote);
-                          }
-                          // if the proposal is not open for voting we just return nothing, letting us continue
-                        })
-                      );
+                      // we'll check if the wallet still needs to delegate their tokens before they can vote
+                      const delegation = await token.getDelegationOf(address);
+                      // if the delegation is the 0x0 address that means they have not delegated their governance tokens yet
+                      if (delegation === AddressZero) {
+                        // if they haven't delegated their tokens yet, we'll have them delegate them before voting
+                        await token.delegateTo(address);
+                      }
+                      // then we need to vote on the proposals
                       try {
-                        // if any of the propsals are ready to be executed we'll need to execute them
-                        // a proposal is ready to be executed if it is in state 4
                         await Promise.all(
-                          votes.map(async ({ proposalId }) => {
-                            // we'll first get the latest state of the proposal again, since we may have just voted before
+                          votes.map(async ({ proposalId, vote: _vote }) => {
+                            // before voting we first need to check whether the proposal is open for voting
+                            // we first need to get the latest state of the proposal
                             const proposal = await vote.get(proposalId);
-
-                            // if the state is in state 4 (meaning that it is ready to be executed), we'll execute the proposal
-                            if (proposal.state === 4) {
-                              return vote.execute(proposalId);
+                            // then we check if the proposal is open for voting (state === 1 means it is open)
+                            if (proposal.state === 1) {
+                              // if it is open for voting, we'll vote on it
+                              return vote.vote(proposalId, _vote);
                             }
+                            // if the proposal is not open for voting we just return nothing, letting us continue
                           })
                         );
-                        // if we get here that means we successfully voted, so let's set the "hasVoted" state to true
-                        setHasVoted(true);
-                        // and log out a success message
-                        console.log('successfully voted');
+                        try {
+                          // if any of the propsals are ready to be executed we'll need to execute them
+                          // a proposal is ready to be executed if it is in state 4
+                          await Promise.all(
+                            votes.map(async ({ proposalId }) => {
+                              // we'll first get the latest state of the proposal again, since we may have just voted before
+                              const proposal = await vote.get(proposalId);
+
+                              // if the state is in state 4 (meaning that it is ready to be executed), we'll execute the proposal
+                              if (proposal.state === 4) {
+                                return vote.execute(proposalId);
+                              }
+                            })
+                          );
+                          // if we get here that means we successfully voted, so let's set the "hasVoted" state to true
+                          setHasVoted(true);
+                          // and log out a success message
+                          console.log('successfully voted');
+                        } catch (err) {
+                          console.error('failed to execute votes', err);
+                        }
                       } catch (err) {
-                        console.error('failed to execute votes', err);
+                        console.error('failed to vote', err);
                       }
                     } catch (err) {
-                      console.error('failed to vote', err);
+                      console.error('failed to delegate tokens');
+                    } finally {
+                      // in *either* case we need to set the isVoting state to false to enable the button again
+                      setIsVoting(false);
                     }
-                  } catch (err) {
-                    console.error('failed to delegate tokens');
-                  } finally {
-                    // in *either* case we need to set the isVoting state to false to enable the button again
-                    setIsVoting(false);
-                  }
-                }}
-              >
-                <Grid container spacing={2}>
-                  {proposals.length > 0 ? (
-                    proposals.map((proposal) => {
-                      return (
-                        <Grid item xs={12} md={6} key={proposal.proposalId}>
-                          <Typography color="textPrimary" variant="h6" sx={{ mb: 2 }}>
-                            {proposal.description}
-                          </Typography>
-                          {proposal.votes.map(({ type, label }) => (
+                  }}
+                >
+                  <Grid container spacing={2}>
+                    {proposals.length > 0 ? (
+                      proposals.map((proposal, index) => {
+                        return (
+                          <Grid key={index} item xs={12} sx={{ mb: 2 }}>
+                            <FormControl>
+                              <FormLabel id="demo-row-radio-buttons-group-label">
+                                ({index + 1}) {proposal.description}
+                              </FormLabel>
+                              <RadioGroup
+                                row
+                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                name="row-radio-buttons-group"
+                              >
+                                {proposal.votes.map(({ type, label }) => (
+                                  <FormControlLabel
+                                    key={type}
+                                    value={type}
+                                    control={<Radio />}
+                                    label={label}
+                                    type="radio"
+                                    id={`${proposal.proposalId}-${type}`}
+                                    // name={proposal.proposalId}
+                                    // default the "abstain" vote to checked
+                                    defaultChecked={type === 2}
+                                    disabled={hasVoted}
+                                  />
+                                ))}
+                              </RadioGroup>
+                            </FormControl>
+
+                            {/* 
+                          <Typography color="textPrimary" variant="h6">
+                            ({index + 1}) {proposal.description}
+                          </Typography> */}
+                            {/* {proposal.votes.map(({ type, label }) => (
                             <div key={type}>
                               <input
                                 type="radio"
@@ -356,81 +403,42 @@ const DAO = () => {
                                 value={type}
                                 // default the "abstain" vote to checked
                                 defaultChecked={type === 2}
+                                disabled={hasVoted}
                               />
                               <label htmlFor={`${proposal.proposalId}-${type}`}>{label}</label>
                             </div>
-                          ))}
-                        </Grid>
-                      );
-                    })
-                  ) : (
-                    <div>No active proposals</div>
+                          ))} */}
+                          </Grid>
+                        );
+                      })
+                    ) : (
+                      <Typography sx={{ p: 2 }}>No Active Proposals</Typography>
+                    )}
+                  </Grid>
+
+                  {proposals.length > 0 && (
+                    <center>
+                      <Button sx={{ mt: 4 }} variant="contained" disabled={isVoting || hasVoted} type="submit">
+                        {/* eslint-disable-next-line */}
+                        {isVoting ? 'Voting...' : hasVoted ? 'You Already Voted' : 'Submit Votes'}
+                      </Button>
+
+                      {!hasVoted && (
+                        <Typography sx={{ pt: 2 }}>
+                          This will trigger multiple transactions that you will need to sign.
+                        </Typography>
+                      )}
+                    </center>
                   )}
-                </Grid>
-              </form>
-
-              <Button variant="contained" disabled={isVoting || hasVoted} type="submit">
-                {isVoting ? 'Voting...' : ''}
-                {hasVoted ? 'You Already Voted' : 'Submit Votes'}
-              </Button>
-
-              {!hasVoted && (
-                <Typography sx={{ pt: 2 }}>
-                  This will trigger multiple transactions that you will need to sign.
-                </Typography>
-              )}
-            </Paper>
+                </form>
+              </Paper>
+            </Card>
           </Grid>
 
-          <Grid item xs={12} md={6} lg={8} sx={{ mt: 3 }}>
-            <AppWebsiteVisits
-              title="Token Value"
-              subheader="CIGAR Governance Token"
-              chartLabels={[
-                '01/01/2003',
-                '02/01/2003',
-                '03/01/2003',
-                '04/01/2003',
-                '05/01/2003',
-                '06/01/2003',
-                '07/01/2003',
-                '08/01/2003',
-                '09/01/2003',
-                '10/01/2003',
-                '11/01/2003',
-              ]}
-              chartData={[
-                {
-                  name: 'Team A',
-                  type: 'column',
-                  fill: 'solid',
-                  data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30],
-                },
-                {
-                  name: 'Team B',
-                  type: 'area',
-                  fill: 'gradient',
-                  data: [44, 55, 41, 67, 22, 43, 21, 41, 56, 27, 43],
-                },
-                {
-                  name: 'Team C',
-                  type: 'line',
-                  fill: 'solid',
-                  data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39],
-                },
-              ]}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4} sx={{ mt: 3 }}>
+          <Grid item xs={12} sx={{ mt: 3 }}>
             <AppCurrentVisits
-              title="Ownership"
-              chartData={[
-                { label: 'Des', value: 250000 },
-                { label: 'Alex', value: 250000 },
-                { label: 'Treasury', value: 500000 },
-                { label: 'Other', value: 0 },
-              ]}
+              title="CigarDAO Governance Token"
+              chartData={chartData}
               chartColors={[
                 theme.palette.primary.main,
                 theme.palette.chart.blue[0],
@@ -439,111 +447,6 @@ const DAO = () => {
               ]}
             />
           </Grid>
-
-          {/* 
-          <Grid item xs={12} md={6} lg={8}>
-            <AppConversionRates
-              title="Conversion Rates"
-              subheader="(+43%) than last year"
-              chartData={[
-                { label: 'Italy', value: 400 },
-                { label: 'Japan', value: 430 },
-                { label: 'China', value: 448 },
-                { label: 'Canada', value: 470 },
-                { label: 'France', value: 540 },
-                { label: 'Germany', value: 580 },
-                { label: 'South Korea', value: 690 },
-                { label: 'Netherlands', value: 1100 },
-                { label: 'United States', value: 1200 },
-                { label: 'United Kingdom', value: 1380 },
-              ]}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <AppCurrentSubject
-              title="Current Subject"
-              chartLabels={['English', 'History', 'Physics', 'Geography', 'Chinese', 'Math']}
-              chartData={[
-                { name: 'Series 1', data: [80, 50, 30, 40, 100, 20] },
-                { name: 'Series 2', data: [20, 30, 40, 80, 20, 80] },
-                { name: 'Series 3', data: [44, 76, 78, 13, 43, 10] },
-              ]}
-              chartColors={[...Array(6)].map(() => theme.palette.text.secondary)}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={8}>
-            <AppNewsUpdate
-              title="News Update"
-              list={[...Array(5)].map((_, index) => ({
-                id: faker.datatype.uuid(),
-                title: faker.name.jobTitle(),
-                description: faker.name.jobTitle(),
-                image: `/static/mock-images/covers/cover_${index + 1}.jpg`,
-                postedAt: faker.date.recent(),
-              }))}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <AppOrderTimeline
-              title="Order Timeline"
-              list={[...Array(5)].map((_, index) => ({
-                id: faker.datatype.uuid(),
-                title: [
-                  '1983, orders, $4220',
-                  '12 Invoices have been paid',
-                  'Order #37745 from September',
-                  'New order placed #XF-2356',
-                  'New order placed #XF-2346',
-                ][index],
-                type: `order${index + 1}`,
-                time: faker.date.past(),
-              }))}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <AppTrafficBySite
-              title="Traffic by Site"
-              list={[
-                {
-                  name: 'FaceBook',
-                  value: 323234,
-                  icon: <Iconify icon={'eva:facebook-fill'} color="#1877F2" width={32} height={32} />,
-                },
-                {
-                  name: 'Google',
-                  value: 341212,
-                  icon: <Iconify icon={'eva:google-fill'} color="#DF3E30" width={32} height={32} />,
-                },
-                {
-                  name: 'Linkedin',
-                  value: 411213,
-                  icon: <Iconify icon={'eva:linkedin-fill'} color="#006097" width={32} height={32} />,
-                },
-                {
-                  name: 'Twitter',
-                  value: 443232,
-                  icon: <Iconify icon={'eva:twitter-fill'} color="#1C9CEA" width={32} height={32} />,
-                },
-              ]}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={8}>
-            <AppTasks
-              title="Tasks"
-              list={[
-                { id: '1', label: 'Create FireStone Logo' },
-                { id: '2', label: 'Add SCSS and JS files if required' },
-                { id: '3', label: 'Stakeholder Meeting' },
-                { id: '4', label: 'Scoping & Estimations' },
-                { id: '5', label: 'Sprint Showcase' },
-              ]}
-            />
-          </Grid> */}
         </Grid>
       </Container>
     </div>
