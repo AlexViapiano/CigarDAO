@@ -52,6 +52,12 @@ export default function DashboardNavbar({ onOpenSidebar }) {
         <Box sx={{ flexGrow: 1 }} />
 
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
+          <a target="blank" href={'https://testnets.opensea.io/collection/cigardao-membership'}>
+            <IconButton sx={{ color: 'text.secondary' }}>
+              <Iconify icon="simple-icons:opensea" />
+            </IconButton>
+          </a>
+
           <a target="blank" href={'https://discord.gg/aGEEGHPG'}>
             <IconButton sx={{ color: 'text.secondary' }}>
               <Iconify icon="akar-icons:discord-fill" />

@@ -3,12 +3,15 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 // @mui
 import { styled } from '@mui/material/styles';
-import { Card, Link, Container, Typography, Button, CircularProgress, Grid } from '@mui/material';
+import { Card, Link, Container, Typography, Button, CircularProgress, Grid, Stack, IconButton } from '@mui/material';
 // hooks
 import useResponsive from '../hooks/useResponsive';
 // components
 import Page from '../components/Page';
 import Logo from '../components/Logo';
+// components
+import Iconify from '../components/Iconify';
+
 // sections
 // import { LoginForm } from '../sections/auth/login';
 // import AuthSocial from '../sections/auth/AuthSocial';
@@ -119,9 +122,27 @@ export default function Login() {
   return (
     <Page title="Login">
       <RootStyle>
-        {/* <HeaderStyle>
+        <HeaderStyle>
           <Logo />
-        </HeaderStyle> */}
+          <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
+            <a target="blank" href={'https://testnets.opensea.io/collection/cigardao-membership'}>
+              <IconButton sx={{ color: 'text.secondary' }}>
+                <Iconify icon="simple-icons:opensea" />
+              </IconButton>
+            </a>
+
+            <a target="blank" href={'https://discord.gg/aGEEGHPG'}>
+              <IconButton sx={{ color: 'text.secondary' }}>
+                <Iconify icon="akar-icons:discord-fill" />
+              </IconButton>
+            </a>
+            <a target="blank" href={'https://rinkeby.etherscan.io/token/0x84fa17c04B1009f34e62468833cd428fA1813fB0'}>
+              <IconButton sx={{ color: 'text.secondary' }}>
+                <Iconify icon="cib:ethereum" />
+              </IconButton>
+            </a>
+          </Stack>
+        </HeaderStyle>
 
         {mdUp && (
           <SectionStyle>
@@ -143,11 +164,24 @@ export default function Login() {
             <ContentStyle>
               {!address ? (
                 <>
-                  <Typography variant="h4" gutterBottom>
+                  <Typography variant="h2" gutterBottom>
+                    CigarDAO
+                  </Typography>
+
+                  <Typography variant="p" gutterBottom>
+                    CigarCoin (CIGAR) is an ERC-20 utility and governance token of the CIGAR ecosystem. It empowers the
+                    decentralized CIGAR community building at the forefront of Web 3.0.
+                    <br /> <br />
+                    CIGAR is governed by the CigarCoin DAO and supported by the CIGAR Foundation. With CIGAR, token
+                    holders can vote on governance proposals on the DAO and access exclusive features of the CIGAR
+                    ecosystem, such as games, events, and services.
+                  </Typography>
+
+                  <Typography variant="h4" gutterBottom sx={{ mt: 4 }}>
                     Sign in to CigarDAO
                   </Typography>
 
-                  <Typography sx={{ color: 'text.secondary', mb: 5 }}>Connect your wallet.</Typography>
+                  <Typography sx={{ color: 'text.secondary', mb: 4 }}>Connect your wallet.</Typography>
 
                   <Button
                     onClick={connectWithMetamask}
@@ -157,7 +191,7 @@ export default function Login() {
                     variant="contained"
                     loading={false}
                   >
-                    Connect your walet
+                    Connect your wallet
                   </Button>
                 </>
               ) : (
